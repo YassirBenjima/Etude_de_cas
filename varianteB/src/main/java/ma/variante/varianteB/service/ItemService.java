@@ -1,7 +1,9 @@
 package ma.variante.varianteB.service;
 
 import ma.variante.varianteB.model.Item;
+import ma.variante.varianteB.model.Category;
 import ma.variante.varianteB.repository.ItemRepository;
+import ma.variante.varianteB.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.PageRequest;
@@ -13,6 +15,8 @@ import java.util.List;
 public class ItemService {
     @Autowired
     private ItemRepository itemRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     public List<Item> getAllItems(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -28,11 +32,23 @@ public class ItemService {
     }
 
     public Item createItem(Item item) {
+        if (item.getCategory() != null && item.getCategory().getId() != null) {
+            Category managedCategory = categoryRepository.findById(item.getCategory().getId()).orElse(null);
+            if (managedCategory != null) {
+                item.setCategory(managedCategory);
+            }
+        }
         return itemRepository.save(item);
     }
 
     public Item updateItem(Long id, Item item) {
         if (itemRepository.existsById(id)) {
+            if (item.getCategory() != null && item.getCategory().getId() != null) {
+                Category managedCategory = categoryRepository.findById(item.getCategory().getId()).orElse(null);
+                if (managedCategory != null) {
+                    item.setCategory(managedCategory);
+                }
+            }
             item.setId(id);
             return itemRepository.save(item);
         }
